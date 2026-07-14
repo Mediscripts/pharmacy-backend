@@ -1,0 +1,7 @@
+.env
+node_modules
+*.local
+.env
+.env.example
+schema.sql
+README.md
