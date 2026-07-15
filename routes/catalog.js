@@ -37,6 +37,47 @@ router.get('/products', async (_req, res, next) => {
   }
 })
 
+router.get('/products/:slug', async (req, res, next) => {
+  try {
+    const { slug } = req.params
+
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .select(
+        'id, name, slug, description, price, stock_quantity, prescription_required, is_active, images, categories(name, slug)',
+      )
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (error) {
+      throw error
+    }
+
+    if (!data) {
+      return res.status(404).json({ message: 'Product not found.' })
+    }
+
+    res.json({
+      product: {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        stockQuantity: data.stock_quantity,
+        prescriptionRequired: data.prescription_required,
+        isActive: data.is_active,
+        images: data.images,
+        category: data.categories?.name || 'Uncategorized',
+        categorySlug: data.categories?.slug || '',
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.get('/categories', async (_req, res, next) => {
   try {
     const { data, error } = await supabaseAdmin

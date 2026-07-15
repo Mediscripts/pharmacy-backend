@@ -3,11 +3,13 @@ import healthRoutes from './health.js'
 import adminRoutes from './admin.js'
 import catalogRoutes from './catalog.js'
 import inventoryRoutes from './inventory.js'
+import ordersRoutes from './orders.js'
 
 const router = Router()
 
 router.use(healthRoutes)
 router.use('/catalog', catalogRoutes)
+router.use('/orders', ordersRoutes)
 router.use('/admin', adminRoutes)
 router.use('/admin/inventory', inventoryRoutes)
 
