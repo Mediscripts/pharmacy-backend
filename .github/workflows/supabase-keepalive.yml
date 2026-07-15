@@ -1,0 +1,16 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 8 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend keepalive endpoint
+        run: |
+          curl -fsS \
+            -H "x-keepalive-secret: ${{ secrets.KEEPALIVE_SECRET }}" \
+            "${{ secrets.KEEPALIVE_URL }}"
