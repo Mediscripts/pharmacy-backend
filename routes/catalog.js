@@ -3,21 +3,45 @@ import supabaseAdmin from '../server/lib/supabaseAdmin.js'
 
 const router = Router()
 
-router.get('/products', async (_req, res, next) => {
+function escapeLikeValue(value) {
+  return String(value || '').replace(/[%_]/g, '\\$&')
+}
+
+router.get('/products', async (req, res, next) => {
   try {
-    const { data, error } = await supabaseAdmin
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1)
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 24, 1), 50)
+    const categoryId = String(req.query.categoryId || '').trim()
+    const search = String(req.query.q || '').trim()
+    const start = (page - 1) * limit
+    const end = start + limit
+
+    let query = supabaseAdmin
       .from('products')
       .select(
-        'id, name, slug, description, price, stock_quantity, prescription_required, is_active, images, categories(name, slug)',
+        'id, name, slug, description, price, stock_quantity, prescription_required, is_active, images, category_id, categories(name, slug)',
       )
       .eq('is_active', true)
       .order('created_at', { ascending: false })
+
+    if (categoryId) {
+      query = query.eq('category_id', categoryId)
+    }
+
+    if (search) {
+      const safeSearch = `%${escapeLikeValue(search)}%`
+      query = query.or(`name.ilike.${safeSearch},description.ilike.${safeSearch}`)
+    }
+
+    const { data, error } = await query.range(start, end)
 
     if (error) {
       throw error
     }
 
-    const products = (data || []).map((product) => ({
+    const items = Array.isArray(data) ? data : []
+    const hasMore = items.length > limit
+    const products = items.slice(0, limit).map((product) => ({
       id: product.id,
       name: product.name,
       slug: product.slug,
@@ -27,11 +51,17 @@ router.get('/products', async (_req, res, next) => {
       prescriptionRequired: product.prescription_required,
       isActive: product.is_active,
       images: product.images,
+      categoryId: product.category_id,
       category: product.categories?.name || 'Uncategorized',
       categorySlug: product.categories?.slug || '',
     }))
 
-    res.json({ products })
+    res.json({
+      products,
+      page,
+      limit,
+      hasMore,
+    })
   } catch (error) {
     next(error)
   }
@@ -69,6 +99,7 @@ router.get('/products/:slug', async (req, res, next) => {
         prescriptionRequired: data.prescription_required,
         isActive: data.is_active,
         images: data.images,
+        categoryId: data.category_id,
         category: data.categories?.name || 'Uncategorized',
         categorySlug: data.categories?.slug || '',
       },
