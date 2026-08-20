@@ -5,6 +5,8 @@ import sitemapRoutes from '../routes/sitemap.js'
 import supabaseAdmin from './lib/supabaseAdmin.js'
 import { notFoundHandler, errorHandler } from '../middleware/errorHandler.js'
 
+
+
 const app = express()
 
 app.use(
