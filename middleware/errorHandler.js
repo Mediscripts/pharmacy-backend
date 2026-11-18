@@ -57,7 +57,12 @@ function getSafeErrorMessage(error) {
 export function errorHandler(error, req, res, _next) {
   const statusCode = Number(error?.statusCode || error?.status || 500)
   const schemaErrorCodes = new Set(['42P01', '42703', 'PGRST200', 'PGRST204', 'PGRST205'])
-  const isHealthHubSchemaError = req.originalUrl.includes('/health-hub') && schemaErrorCodes.has(String(error?.code || ''))
+  const schemaSetupPath = req.originalUrl.includes('/pharmacist-bookings')
+    ? 'migrations/010_add_pharmacist_bookings.sql'
+    : req.originalUrl.includes('/health-hub')
+      ? 'migrations/009_add_health_hub.sql'
+      : ''
+  const isFeatureSchemaError = Boolean(schemaSetupPath) && schemaErrorCodes.has(String(error?.code || ''))
 
   if (statusCode >= 500) {
     console.error('[api error]', {
@@ -68,11 +73,11 @@ export function errorHandler(error, req, res, _next) {
     })
   }
 
-  const publicMessage = isHealthHubSchemaError
-    ? 'Health Hub database setup is incomplete or outdated. Apply the latest backend/migrations/009_add_health_hub.sql in Supabase, then restart the API.'
+  const publicMessage = isFeatureSchemaError
+    ? `Database setup is incomplete or outdated. Apply the latest backend/${schemaSetupPath} in Supabase, then restart the API.`
     : getSafeErrorMessage(error)
 
-  res.status(isHealthHubSchemaError ? 503 : statusCode >= 400 ? statusCode : 500).json({
+  res.status(isFeatureSchemaError ? 503 : statusCode >= 400 ? statusCode : 500).json({
     message: publicMessage || 'We could not complete that request right now. Please try again.',
   })
 }

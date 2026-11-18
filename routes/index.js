@@ -8,6 +8,8 @@ import trackingRoutes from './tracking.js'
 import sitemapRoutes from './sitemap.js'
 import healthHubRoutes from './healthHub.js'
 import adminHealthHubRoutes from './adminHealthHub.js'
+import pharmacistBookingsRoutes from './pharmacistBookings.js'
+import adminPharmacistBookingsRoutes from './adminPharmacistBookings.js'
 
 const router = Router()
 
@@ -17,8 +19,10 @@ router.use('/orders', ordersRoutes)
 router.use('/tracking', trackingRoutes)
 router.use('/admin', adminRoutes)
 router.use('/admin/health-hub', adminHealthHubRoutes)
+router.use('/admin/pharmacist-bookings', adminPharmacistBookingsRoutes)
 router.use('/admin/inventory', inventoryRoutes)
 router.use('/health-hub', healthHubRoutes)
+router.use('/', pharmacistBookingsRoutes)
 router.use('/', sitemapRoutes)
 
 export default router

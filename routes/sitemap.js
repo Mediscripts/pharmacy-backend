@@ -2,7 +2,7 @@ import { Router } from 'express'
 import supabaseAdmin from '../server/lib/supabaseAdmin.js'
 
 const router = Router()
-const staticPaths = ['', 'products', 'health-hub', 'contact', 'track-order']
+const staticPaths = ['', 'products', 'health-hub', 'book-pharmacist', 'contact', 'track-order']
 
 router.get('/sitemap.xml', async (req, res, next) => {
   try {
