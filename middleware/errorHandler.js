@@ -54,11 +54,25 @@ function getSafeErrorMessage(error) {
   return ''
 }
 
-export function errorHandler(error, _req, res, _next) {
+export function errorHandler(error, req, res, _next) {
   const statusCode = Number(error?.statusCode || error?.status || 500)
-  const publicMessage = getSafeErrorMessage(error)
+  const schemaErrorCodes = new Set(['42P01', '42703', 'PGRST200', 'PGRST204', 'PGRST205'])
+  const isHealthHubSchemaError = req.originalUrl.includes('/health-hub') && schemaErrorCodes.has(String(error?.code || ''))
 
-  res.status(statusCode >= 400 ? statusCode : 500).json({
+  if (statusCode >= 500) {
+    console.error('[api error]', {
+      method: req.method,
+      path: req.originalUrl,
+      code: error?.code || null,
+      message: error?.message || 'Unknown server error',
+    })
+  }
+
+  const publicMessage = isHealthHubSchemaError
+    ? 'Health Hub database setup is incomplete or outdated. Apply the latest backend/migrations/009_add_health_hub.sql in Supabase, then restart the API.'
+    : getSafeErrorMessage(error)
+
+  res.status(isHealthHubSchemaError ? 503 : statusCode >= 400 ? statusCode : 500).json({
     message: publicMessage || 'We could not complete that request right now. Please try again.',
   })
 }

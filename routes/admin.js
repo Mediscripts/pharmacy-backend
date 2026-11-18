@@ -333,8 +333,8 @@ router.patch('/homepage-sections', requireAuth, requireAdmin, async (req, res, n
     const featuredProductIds = normalizeIdList(req.body.featuredProductIds)
     const promotionProductIds = normalizeIdList(req.body.promotionProductIds)
 
-    if (featuredProductIds.length > 5) {
-      throw new Error('Featured products can have at most 5 items.')
+    if (featuredProductIds.length > 6) {
+      throw new Error('Featured products can have at most 6 items.')
     }
 
     if (promotionProductIds.length > 5) {
